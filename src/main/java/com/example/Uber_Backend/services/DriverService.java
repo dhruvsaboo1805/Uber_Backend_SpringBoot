@@ -7,8 +7,15 @@ import com.example.Uber_Backend.mappers.DriverMapper;
 import com.example.Uber_Backend.repositories.IDriverRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.geo.Circle;
+import org.springframework.data.geo.Distance;
+import org.springframework.data.geo.GeoResults;
+import org.springframework.data.geo.Metrics;
+import org.springframework.data.redis.connection.RedisGeoCommands;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.awt.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -17,6 +24,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class DriverService {
     private final IDriverRepository driverRepository;
+    private static final String DRIVER_GEO_KEY = "drivers:locations";
+
+    private final RedisTemplate<String, String> redisTemplate;
 
     public DriverResponseDTO createDriver(DriverRequestDTO requestDto) {
         Driver driver = DriverMapper.toEntity(requestDto);
