@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity(name = "driver")
@@ -32,7 +33,22 @@ public class Driver {
 
     private boolean isAvailable = false;
 
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+
     // relationships
     @OneToMany(mappedBy = "driver", cascade = CascadeType.ALL)
-    List<Ride> rides;
+    List<RideBooking> rideBookings;
+
 }

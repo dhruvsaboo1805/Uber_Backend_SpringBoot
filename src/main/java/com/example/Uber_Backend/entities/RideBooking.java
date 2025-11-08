@@ -14,13 +14,13 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Ride {
+public class RideBooking {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    private RideStatus status;
+    private RideStatus status = RideStatus.PENDING;
 
     private String pickupLocation;
 
@@ -31,6 +31,21 @@ public class Ride {
     private LocalDateTime startedAt;
 
     private LocalDateTime completedAt;
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 
     //Relationships
 

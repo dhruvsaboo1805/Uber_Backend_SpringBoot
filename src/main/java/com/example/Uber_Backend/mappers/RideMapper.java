@@ -1,22 +1,20 @@
 package com.example.Uber_Backend.mappers;
 
-import com.example.Uber_Backend.dto.RideRequestDTO;
 import com.example.Uber_Backend.dto.RideResponseDTO;
 import com.example.Uber_Backend.entities.Driver;
-import com.example.Uber_Backend.entities.Passenger;
-import com.example.Uber_Backend.entities.Ride;
+import com.example.Uber_Backend.entities.RideBooking;
 
 public class RideMapper {
-    public static RideResponseDTO toDto(Ride ride) {
+    public static RideResponseDTO toDto(RideBooking rideBooking) {
 
         RideResponseDTO.PassengerInfo passengerInfo = new RideResponseDTO.PassengerInfo(
-                ride.getPassenger().getId(),
-                ride.getPassenger().getName()
+                rideBooking.getPassenger().getId(),
+                rideBooking.getPassenger().getName()
         );
 
         RideResponseDTO.DriverInfo driverInfo = null;
-        if (ride.getDriver() != null) {
-            Driver driver = ride.getDriver();
+        if (rideBooking.getDriver() != null) {
+            Driver driver = rideBooking.getDriver();
             driverInfo = new RideResponseDTO.DriverInfo(
                     driver.getId(),
                     driver.getName()
@@ -24,13 +22,13 @@ public class RideMapper {
         }
 
         return new RideResponseDTO(
-                ride.getId(),
-                ride.getStatus(),
-                ride.getPickupLocation(),
-                ride.getDropOffLocation(),
-                ride.getRequestedAt(),
-                ride.getStartedAt(),
-                ride.getCompletedAt(),
+                rideBooking.getId(),
+                rideBooking.getStatus(),
+                rideBooking.getPickupLocation(),
+                rideBooking.getDropOffLocation(),
+                rideBooking.getRequestedAt(),
+                rideBooking.getStartedAt(),
+                rideBooking.getCompletedAt(),
                 passengerInfo,
                 driverInfo
         );
