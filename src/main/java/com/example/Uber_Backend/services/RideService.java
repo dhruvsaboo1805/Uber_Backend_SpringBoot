@@ -1,11 +1,14 @@
 package com.example.Uber_Backend.services;
 
+import com.example.Uber_Backend.dto.DriverLocationDTO;
+import com.example.Uber_Backend.dto.DriverResponseDTO;
 import com.example.Uber_Backend.dto.RideRequestDTO;
 import com.example.Uber_Backend.dto.RideResponseDTO;
 import com.example.Uber_Backend.entities.Driver;
 import com.example.Uber_Backend.entities.Passenger;
 import com.example.Uber_Backend.entities.RideBooking;
 import com.example.Uber_Backend.enums.RideStatus;
+import com.example.Uber_Backend.grpc.client.RideNotificationGrpcClient;
 import com.example.Uber_Backend.mappers.RideMapper;
 import com.example.Uber_Backend.repositories.IDriverRepository;
 import com.example.Uber_Backend.repositories.IPassengerRepository;
@@ -26,6 +29,8 @@ public class RideService {
     private final IRideRepository rideRepository;
     private final IPassengerRepository passengerRepository;
     private final IDriverRepository driverRepository;
+    private final RedisLocationService redisLocationService;
+    private final RideNotificationGrpcClient grpcClient;
 
     public RideResponseDTO createRide(RideRequestDTO requestDto) throws  Exception {
         Passenger passenger = passengerRepository.findById(requestDto.getPassengerId())
@@ -33,13 +38,41 @@ public class RideService {
 
         RideBooking rideBooking = new RideBooking();
         rideBooking.setPassenger(passenger);
-        rideBooking.setPickupLocation(requestDto.getPickupLocation());
-        rideBooking.setDropOffLocation(requestDto.getDropOffLocation());
+        rideBooking.setPickupLocationLatitude(requestDto.getPickupLocationLatitude());
+        rideBooking.setPickupLocationLongitude(requestDto.getPickupLocationLongitude());
         rideBooking.setStatus(RideStatus.REQUESTED);
         rideBooking.setRequestedAt(LocalDateTime.now());
 
-        RideBooking savedRideBooking = rideRepository.save(rideBooking);
-        return RideMapper.toDto(savedRideBooking);
+        // raise a request to find the driver
+        List<DriverLocationDTO> nearbyDrivers = redisLocationService.getNearByDrivers(requestDto.getPickupLocationLatitude(), requestDto.getPickupLocationLongitude() , 10.0);
+
+        if (nearbyDrivers.isEmpty()) {
+            rideBooking.setStatus(RideStatus.NOT_AVAILABLE);
+            rideRepository.save(rideBooking);
+            throw new Exception("No drivers available in your area");
+        }
+
+        List<String> driverIds = nearbyDrivers.stream()
+                .map(DriverLocationDTO::getDriverId)
+                .toList();
+
+        try {
+            grpcClient.notifyDriversForRide(
+                    rideBooking.getId().toString(),
+                    driverIds,
+                    requestDto.getPickupLocationLatitude(),
+                    requestDto.getPickupLocationLongitude()
+            );
+        } catch (Exception e) {
+            rideBooking.setStatus(RideStatus.FAILED);
+            rideRepository.save(rideBooking);
+            throw new Exception("Failed to notify drivers: " + e.getMessage());
+        }
+
+        return RideResponseDTO.builder()
+                .bookingId(rideBooking.getId().toString())
+                .status(rideBooking.getStatus())
+                .build();
     }
 
     public RideResponseDTO getRideById(Long id) throws Exception {
@@ -55,24 +88,30 @@ public class RideService {
                 .collect(Collectors.toList());
     }
 
-    public RideResponseDTO acceptRide(Long rideId, Long driverId) throws Exception {
-        RideBooking rideBooking = rideRepository.findById(rideId)
-                .orElseThrow(() -> new Exception("Ride not found with id: " + rideId));
-
-        Driver driver = driverRepository.findById(driverId)
-                .orElseThrow(() -> new Exception("Driver not found with id: " + driverId));
+    public RideResponseDTO confirmRideAcceptance(String bookingId, String driverId) throws Exception {
+        RideBooking rideBooking = rideRepository.findById(Long.parseLong(bookingId))
+                .orElseThrow(() -> new Exception("Booking not found"));
 
         if (rideBooking.getStatus() != RideStatus.REQUESTED) {
-            throw new IllegalStateException("Ride cannot be accepted, current status: " + rideBooking.getStatus());
+            throw new Exception("Ride already assigned or cancelled");
         }
+
+        // Assign driver
+        Driver driver = driverRepository.findById(driverId)
+                .orElseThrow(() -> new Exception("Driver not found"));
 
         rideBooking.setDriver(driver);
         rideBooking.setStatus(RideStatus.BOOKED);
+        rideBooking.setCreatedAt(LocalDateTime.now());
 
-        RideBooking updatedRideBooking = rideRepository.save(rideBooking);
-        return RideMapper.toDto(updatedRideBooking);
+        rideBooking = rideRepository.save(rideBooking);
+
+        return RideResponseDTO.builder()
+                .bookingId(rideBooking.getId().toString())
+                .driverId(driver.getId())
+                .status(rideBooking.getStatus())
+                .build();
     }
-
 
     public void deleteRide(Long id) throws Exception {
         if (!rideRepository.existsById(id)) {

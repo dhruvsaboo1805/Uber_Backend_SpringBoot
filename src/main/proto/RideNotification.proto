@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.example.Uber_Backend.grpc";
+option java_outer_classname = "RideNotificationProto";
+
+service RideNotificationService {
+  rpc NotifyDrivers(RideNotificationRequest) returns (RideNotificationResponse);
+  rpc ConfirmRideAcceptance(RideAcceptanceRequest) returns (RideAcceptanceResponse);
+}
+
+message RideNotificationRequest {
+  string booking_id = 1;
+  repeated string driver_ids = 2;
+  double pickup_latitude = 3;
+  double pickup_longitude = 4;
+}
+
+message RideNotificationResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message RideAcceptanceRequest {
+  string booking_id = 1;
+  string driver_id = 2;
+}
+
+message RideAcceptanceResponse {
+  bool success = 1;
+  string message = 2;
+  string booking_id = 3;
+}

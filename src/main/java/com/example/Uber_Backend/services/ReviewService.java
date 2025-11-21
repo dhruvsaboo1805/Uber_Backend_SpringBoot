@@ -36,7 +36,6 @@ public class ReviewService {
             throw new IllegalStateException("Review already exists for this booking");
         }
 
-        // - Ensure booking belongs to this driver & passenger
         if (!booking.getDriver().getId().equals(driver.getId())) {
             throw new IllegalArgumentException("Booking does not belong to the given driver");
         }

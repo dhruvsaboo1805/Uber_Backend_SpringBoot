@@ -22,9 +22,9 @@ public class RideBooking {
     @Enumerated(EnumType.STRING)
     private RideStatus status = RideStatus.PENDING;
 
-    private String pickupLocation;
+    private Double pickupLocationLatitude;
 
-    private String dropOffLocation;
+    private Double pickupLocationLongitude;
 
     private LocalDateTime requestedAt;
 

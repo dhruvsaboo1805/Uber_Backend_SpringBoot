@@ -24,8 +24,8 @@ public class RideMapper {
         return new RideResponseDTO(
                 rideBooking.getId(),
                 rideBooking.getStatus(),
-                rideBooking.getPickupLocation(),
-                rideBooking.getDropOffLocation(),
+                rideBooking.getPickupLocationLatitude(),
+                rideBooking.getPickupLocationLongitude(),
                 rideBooking.getRequestedAt(),
                 rideBooking.getStartedAt(),
                 rideBooking.getCompletedAt(),

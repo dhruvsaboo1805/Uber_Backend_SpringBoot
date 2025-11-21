@@ -15,23 +15,24 @@ import java.time.LocalDateTime;
 public class RideResponseDTO {
     private Long id;
     private RideStatus status;
-    private String pickupLocation;
-    private String dropOffLocation;
+    private String bookingId;
+    private Double pickupLocationLatitude;
+    private Double pickupLocationLongitude;
     private LocalDateTime requestedAt;
     private LocalDateTime startedAt;
     private LocalDateTime completedAt;
-    private PassengerInfo passenger;
-    private DriverInfo driver;
+    private Long passengerId;
+    private String driverId;
 
-    public record PassengerInfo(
-            Long id,
-            String name
-    ) {}
-
-    public record DriverInfo(
-            Long id,
-            String name
-    ) {}
+//    public record PassengerInfo(
+//            Long id,
+//            String name
+//    ) {}
+//
+//    public record DriverInfo(
+//            Long id
+////            String name
+//    ) {}
 
 }
 
