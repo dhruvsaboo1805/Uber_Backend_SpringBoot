@@ -27,7 +27,7 @@ public class ReviewService {
     public ReviewResponseDTO createReview(ReviewRequestDTO req) {
         Driver driver = driverRepository.findById(req.getDriverId())
                 .orElseThrow(() -> new EntityNotFoundException("Driver not found"));
-        Passenger passenger = passengerRepository.findById(req.getPassengerId())
+        Passenger passenger = passengerRepository.findById(Long.valueOf(req.getPassengerId()))
                 .orElseThrow(() -> new EntityNotFoundException("Passenger not found"));
         RideBooking booking = rideRepository.findById(req.getBookingId())
                 .orElseThrow(() -> new EntityNotFoundException("Booking not found"));

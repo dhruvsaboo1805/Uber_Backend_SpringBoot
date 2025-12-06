@@ -1,17 +1,12 @@
-package com.example.Uber_Backend.grpc.client.server;
+package com.example.Uber_Backend.services;
 
+import com.example.Uber_Backend.*;
 import com.example.Uber_Backend.dto.RideResponseDTO;
-import com.example.Uber_Backend.grpc.RideAcceptanceRequest;
-import com.example.Uber_Backend.grpc.RideAcceptanceResponse;
-import com.example.Uber_Backend.grpc.RideNotificationServiceGrpc;
-import com.example.Uber_Backend.services.RideService;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
-import net.devh.boot.grpc.server.service.GrpcService;
 
-@GrpcService
 @RequiredArgsConstructor
-public class RideAcceptanceGrpcServer extends RideNotificationServiceGrpc.RideNotificationServiceImplBase {
+public class RideAcceptanceGrpcServerImpl extends RideNotificationServiceGrpc.RideNotificationServiceImplBase {
 
     private final RideService rideService;
 
@@ -27,7 +22,7 @@ public class RideAcceptanceGrpcServer extends RideNotificationServiceGrpc.RideNo
             RideAcceptanceResponse grpcResponse = RideAcceptanceResponse.newBuilder()
                     .setSuccess(true)
                     .setMessage("Ride accepted successfully")
-                    .setBookingId(response.getBookingId())
+                    .setBookingId(response.getId())
                     .build();
 
             responseObserver.onNext(grpcResponse);
@@ -42,5 +37,11 @@ public class RideAcceptanceGrpcServer extends RideNotificationServiceGrpc.RideNo
             responseObserver.onNext(grpcResponse);
             responseObserver.onCompleted();
         }
+    }
+
+    // todo will do after class not able to do
+    @Override
+    public void notifyDrivers(RideNotificationRequest request , StreamObserver<RideNotificationResponse> responseObserver) {
+
     }
 }

@@ -20,7 +20,6 @@ public class DriverMapper {
                 .name(driver.getName())
                 .email(driver.getEmail())
                 .mobileNumber(driver.getMobileNumber())
-                .currentLocation(driver.getCurrentLocation())
                 .isAvailable(driver.isAvailable())
                 .build();
         return driverResponseDTO;

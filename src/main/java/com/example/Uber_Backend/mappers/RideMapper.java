@@ -21,16 +21,18 @@ public class RideMapper {
             );
         }
 
-        return new RideResponseDTO(
-                rideBooking.getId(),
-                rideBooking.getStatus(),
-                rideBooking.getPickupLocationLatitude(),
-                rideBooking.getPickupLocationLongitude(),
-                rideBooking.getRequestedAt(),
-                rideBooking.getStartedAt(),
-                rideBooking.getCompletedAt(),
-                passengerInfo,
-                driverInfo
-        );
+        RideResponseDTO rideResponseDTO = new RideResponseDTO().builder()
+                .id(rideBooking.getId())
+                .status(rideBooking.getStatus())
+                .pickupLocationLatitude(rideBooking.getPickupLocationLatitude())
+                .pickupLocationLongitude(rideBooking.getPickupLocationLongitude())
+                .requestedAt(rideBooking.getRequestedAt())
+                .startedAt(rideBooking.getCompletedAt())
+                .completedAt(rideBooking.getCompletedAt())
+                .driverId(rideBooking.getDriver().getId())
+                .passengerId(rideBooking.getPassenger().getId())
+                .build();
+
+        return rideResponseDTO;
     }
 }

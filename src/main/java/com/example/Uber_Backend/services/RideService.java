@@ -1,14 +1,12 @@
 package com.example.Uber_Backend.services;
 
 import com.example.Uber_Backend.dto.DriverLocationDTO;
-import com.example.Uber_Backend.dto.DriverResponseDTO;
 import com.example.Uber_Backend.dto.RideRequestDTO;
 import com.example.Uber_Backend.dto.RideResponseDTO;
 import com.example.Uber_Backend.entities.Driver;
 import com.example.Uber_Backend.entities.Passenger;
 import com.example.Uber_Backend.entities.RideBooking;
 import com.example.Uber_Backend.enums.RideStatus;
-import com.example.Uber_Backend.grpc.client.RideNotificationGrpcClient;
 import com.example.Uber_Backend.mappers.RideMapper;
 import com.example.Uber_Backend.repositories.IDriverRepository;
 import com.example.Uber_Backend.repositories.IPassengerRepository;
@@ -30,7 +28,6 @@ public class RideService {
     private final IPassengerRepository passengerRepository;
     private final IDriverRepository driverRepository;
     private final RedisLocationService redisLocationService;
-    private final RideNotificationGrpcClient grpcClient;
 
     public RideResponseDTO createRide(RideRequestDTO requestDto) throws  Exception {
         Passenger passenger = passengerRepository.findById(requestDto.getPassengerId())
@@ -52,25 +49,27 @@ public class RideService {
             throw new Exception("No drivers available in your area");
         }
 
-        List<String> driverIds = nearbyDrivers.stream()
+        List<Long> driverIds = nearbyDrivers.stream()
                 .map(DriverLocationDTO::getDriverId)
                 .toList();
 
-        try {
-            grpcClient.notifyDriversForRide(
-                    rideBooking.getId().toString(),
-                    driverIds,
-                    requestDto.getPickupLocationLatitude(),
-                    requestDto.getPickupLocationLongitude()
-            );
-        } catch (Exception e) {
-            rideBooking.setStatus(RideStatus.FAILED);
-            rideRepository.save(rideBooking);
-            throw new Exception("Failed to notify drivers: " + e.getMessage());
-        }
+        // this is part where I have confused todo
+
+//        try {
+//            grpcClient.notifyDriversForRide(
+//                    rideBooking.getId().toString(),
+//                    driverIds,
+//                    requestDto.getPickupLocationLatitude(),
+//                    requestDto.getPickupLocationLongitude()
+//            );
+//        } catch (Exception e) {
+//            rideBooking.setStatus(RideStatus.FAILED);
+//            rideRepository.save(rideBooking);
+//            throw new Exception("Failed to notify drivers: " + e.getMessage());
+//        }
 
         return RideResponseDTO.builder()
-                .bookingId(rideBooking.getId().toString())
+                .id(rideBooking.getId())
                 .status(rideBooking.getStatus())
                 .build();
     }
@@ -88,8 +87,8 @@ public class RideService {
                 .collect(Collectors.toList());
     }
 
-    public RideResponseDTO confirmRideAcceptance(String bookingId, String driverId) throws Exception {
-        RideBooking rideBooking = rideRepository.findById(Long.parseLong(bookingId))
+    public RideResponseDTO confirmRideAcceptance(Long bookingId, Long driverId) throws Exception {
+        RideBooking rideBooking = rideRepository.findById(bookingId)
                 .orElseThrow(() -> new Exception("Booking not found"));
 
         if (rideBooking.getStatus() != RideStatus.REQUESTED) {
@@ -107,7 +106,7 @@ public class RideService {
         rideBooking = rideRepository.save(rideBooking);
 
         return RideResponseDTO.builder()
-                .bookingId(rideBooking.getId().toString())
+                .id(rideBooking.getId())
                 .driverId(driver.getId())
                 .status(rideBooking.getStatus())
                 .build();

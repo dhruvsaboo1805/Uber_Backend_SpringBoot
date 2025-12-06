@@ -36,7 +36,7 @@ public class RedisLocationService {
             Point point = geoOperations.position(DRIVER_GEO_OPS_KEY, result.getContent().getName()).get(0); // location of individual driver in redis
 
             DriverLocationDTO driverLocation = DriverLocationDTO.builder()
-                    .driverId(result.getContent().getName())
+                    .driverId(Long.valueOf(result.getContent().getName()))
                     .latitude(point.getY())
                     .longitude(point.getX())
                     .build();

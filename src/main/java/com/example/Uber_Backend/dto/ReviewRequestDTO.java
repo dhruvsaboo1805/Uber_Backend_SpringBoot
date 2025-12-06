@@ -18,7 +18,7 @@ public class ReviewRequestDTO {
     private Long driverId;
 
     @NotNull
-    private Long passengerId;
+    private String passengerId;
 
     @NotNull
     private Long bookingId;

@@ -36,7 +36,7 @@ public class RideController {
 
     @PatchMapping("/{id}/accept")
     public ResponseEntity<RideResponseDTO> acceptRide(@PathVariable Long id, Long driverId) throws Exception {
-        RideResponseDTO updatedRide = rideService.acceptRide(id, driverId);
+        RideResponseDTO updatedRide = rideService.confirmRideAcceptance(id, driverId);
         return ResponseEntity.ok(updatedRide);
     }
 

@@ -14,7 +14,5 @@ public class DriverResponseDTO {
     private String name;
     private String email;
     private String mobileNumber;
-    private Double PickupLocationLatitude;
-    private Double PickupLocationLongitude;
     private boolean isAvailable;
 }

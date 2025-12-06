@@ -19,7 +19,7 @@ import java.util.List;
 public class Driver {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String id;
+    private Long id;
 
     private String name;
 
@@ -29,8 +29,8 @@ public class Driver {
     @Size(max = 10 , message = "Mobile number should not be empty")
     private String mobileNumber;
 
-    private String currentLocation;
-
+//    private String currentLocation;
+    @Builder.Default
     private boolean isAvailable = false;
 
     private LocalDateTime createdAt;

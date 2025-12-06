@@ -20,6 +20,7 @@ public class RideBooking {
     private Long id;
 
     @Enumerated(EnumType.STRING)
+    @Builder.Default
     private RideStatus status = RideStatus.PENDING;
 
     private Double pickupLocationLatitude;
