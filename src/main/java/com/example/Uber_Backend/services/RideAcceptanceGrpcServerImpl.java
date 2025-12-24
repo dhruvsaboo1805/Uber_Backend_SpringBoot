@@ -4,7 +4,9 @@ import com.example.Uber_Backend.*;
 import com.example.Uber_Backend.dto.RideResponseDTO;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
+@Service
 @RequiredArgsConstructor
 public class RideAcceptanceGrpcServerImpl extends RideNotificationServiceGrpc.RideNotificationServiceImplBase {
 
@@ -37,11 +39,5 @@ public class RideAcceptanceGrpcServerImpl extends RideNotificationServiceGrpc.Ri
             responseObserver.onNext(grpcResponse);
             responseObserver.onCompleted();
         }
-    }
-
-    // todo will do after class not able to do
-    @Override
-    public void notifyDrivers(RideNotificationRequest request , StreamObserver<RideNotificationResponse> responseObserver) {
-
     }
 }

@@ -1,5 +1,6 @@
 package com.example.Uber_Backend.services;
 
+import com.example.Uber_Backend.client.GrpcClient;
 import com.example.Uber_Backend.dto.DriverLocationDTO;
 import com.example.Uber_Backend.dto.RideRequestDTO;
 import com.example.Uber_Backend.dto.RideResponseDTO;
@@ -28,50 +29,63 @@ public class RideService {
     private final IPassengerRepository passengerRepository;
     private final IDriverRepository driverRepository;
     private final RedisLocationService redisLocationService;
+    private final GrpcClient grpcClient;
 
-    public RideResponseDTO createRide(RideRequestDTO requestDto) throws  Exception {
-        Passenger passenger = passengerRepository.findById(requestDto.getPassengerId())
-                .orElseThrow(() -> new Exception("Passenger not found with id: " + requestDto.getPassengerId()));
+    public RideResponseDTO createRide(RideRequestDTO request) throws  Exception {
+        Passenger passenger = passengerRepository.findById(request.getPassengerId())
+                .orElseThrow(() -> new Exception("Passenger not found with id: " + request.getPassengerId()));
 
-        RideBooking rideBooking = new RideBooking();
-        rideBooking.setPassenger(passenger);
-        rideBooking.setPickupLocationLatitude(requestDto.getPickupLocationLatitude());
-        rideBooking.setPickupLocationLongitude(requestDto.getPickupLocationLongitude());
-        rideBooking.setStatus(RideStatus.REQUESTED);
-        rideBooking.setRequestedAt(LocalDateTime.now());
+        // Handle driver assignment if provided
+        Driver driver = null;
 
-        // raise a request to find the driver
-        List<DriverLocationDTO> nearbyDrivers = redisLocationService.getNearByDrivers(requestDto.getPickupLocationLatitude(), requestDto.getPickupLocationLongitude() , 10.0);
 
-        if (nearbyDrivers.isEmpty()) {
-            rideBooking.setStatus(RideStatus.NOT_AVAILABLE);
-            rideRepository.save(rideBooking);
-            throw new Exception("No drivers available in your area");
+        if (request.getDriverId()!= null) {
+            driver = driverRepository.findById(request.getDriverId())
+                    .orElseThrow(() -> new IllegalArgumentException("Driver not found with id: " + request.getDriverId()));
+
+            // Check if driver is available
+            if (!driver.isAvailable()) {
+                throw new IllegalStateException("Driver with id " + request.getDriverId() + " is not available");
+            }
+
+            // Assign driver and mark as unavailable
+            driver.setAvailable(false);
+            driverRepository.save(driver);
         }
 
-        List<Long> driverIds = nearbyDrivers.stream()
-                .map(DriverLocationDTO::getDriverId)
-                .toList();
+        // // Convert latitude/longitude from Double to String
+        String pickupLat = request.getPickupLocationLatitude() != null
+                ? request.getPickupLocationLatitude().toString()
+                : null;
+        String pickupLng = request.getPickupLocationLongitude() != null
+                ? request.getPickupLocationLongitude().toString()
+                : null;
 
-        // this is part where I have confused todo
+        if (pickupLat == null || pickupLng == null) {
+            throw new IllegalArgumentException("Pickup location latitude and longitude are required");
+        }
 
-//        try {
-//            grpcClient.notifyDriversForRide(
-//                    rideBooking.getId().toString(),
-//                    driverIds,
-//                    requestDto.getPickupLocationLatitude(),
-//                    requestDto.getPickupLocationLongitude()
-//            );
-//        } catch (Exception e) {
-//            rideBooking.setStatus(RideStatus.FAILED);
-//            rideRepository.save(rideBooking);
-//            throw new Exception("Failed to notify drivers: " + e.getMessage());
-//        }
 
-        return RideResponseDTO.builder()
-                .id(rideBooking.getId())
-                .status(rideBooking.getStatus())
+        RideBooking newBooking = RideBooking.builder()
+                .passenger(passenger)
+                .driver(driver)
+                .pickupLocationLatitude(Double.valueOf(pickupLat))
+                .pickupLocationLongitude(Double.valueOf(pickupLng))
+                .status(RideStatus.BOOKED)
                 .build();
+
+        RideBooking savedBooking = rideRepository.save(newBooking);
+
+        // Find the nearby drivers and then trigger an RPC to UberSocketService to notify them
+
+        List<DriverLocationDTO> nearbyDrivers = redisLocationService.getNearByDrivers(Double.parseDouble(pickupLat), Double.parseDouble(pickupLng), 10.0);
+        List<Integer> driverIds = nearbyDrivers.stream()
+                .map(DriverLocationDTO::getDriverId)
+                .map(Long::intValue)
+                .collect(Collectors.toList());
+
+        grpcClient.NotifyDrivers(pickupLat, pickupLng, Integer.parseInt(savedBooking.getId().toString()), driverIds);
+        return RideMapper.toDto(savedBooking);
     }
 
     public RideResponseDTO getRideById(Long id) throws Exception {

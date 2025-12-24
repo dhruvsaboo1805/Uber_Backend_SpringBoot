@@ -1,31 +1,25 @@
 package com.example.Uber_Backend.config;
 
 import java.io.IOException;
-
 import com.example.Uber_Backend.services.RideAcceptanceGrpcServerImpl;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
-
 
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import jakarta.annotation.PostConstruct;
 
 @Configuration
-@RequiredArgsConstructor
 public class GrpcServerConfig {
 
     @Value("${grpc.server.port:9090}")
     private int grpcServerPort;
 
-
+    @Autowired
     private RideAcceptanceGrpcServerImpl rideAcceptanceGrpcServer;
     private Server server;
-
-//    public GrpcServerConfig() {
-//        this.rideAcceptanceGrpcServer = new RideAcceptanceGrpcServer();
-//    }
 
 
     @PostConstruct

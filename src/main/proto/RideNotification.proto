@@ -6,10 +6,9 @@ option java_multiple_files = true;
 option java_package = "com.example.Uber_Backend";
 option java_outer_classname = "RideNotificationProto";
 
-
 message RideNotificationRequest {
-  string booking_id = 1;
-  repeated string driver_ids = 2;
+  int64 booking_id = 1;
+  repeated int64 driver_ids = 2;
   double pickup_latitude = 3;
   double pickup_longitude = 4;
 }

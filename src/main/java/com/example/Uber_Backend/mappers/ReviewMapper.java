@@ -5,7 +5,6 @@ import com.example.Uber_Backend.entities.Review;
 
 import java.time.Instant;
 
-// todo correct types
 public class ReviewMapper {
     public static ReviewResponseDTO toDto(Review review) {
         ReviewResponseDTO reviewResponseDTO = new ReviewResponseDTO().builder()
@@ -20,8 +19,5 @@ public class ReviewMapper {
         return reviewResponseDTO;
     }
 
-//    public static Review toEntity(ReviewResponseDTO reviewResponseDTO) {
-//        Review review = new Review().builder()
-//                .
-//    }
+//    public static Review toEntity(ReviewResponseDTO reviewResponseDTO) {}
 }

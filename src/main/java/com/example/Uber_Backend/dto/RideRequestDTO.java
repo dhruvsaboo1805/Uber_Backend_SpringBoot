@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class RideRequestDTO {
     private Long passengerId;
+    private Long driverId;
     private Double pickupLocationLatitude;
     private Double pickupLocationLongitude;
 }
